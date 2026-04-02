@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sandip Maity | Portfolio</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="shortcut icon" href="/favicon.svg">
+    <style>
+        :root {
+            --bg: #000000;
+            --text: #ffffff;
+            --accent: #58a6ff;
+            --cat: #ffcc66;
+            --modal-bg: #1a1a2e;
+            --modal-border: #58a6ff;
+            --panel-bg: #0a0a0a;
+            --button-bg: #58a6ff;
+            --button-text: #000000;
+            --muted: #888888;
+            --good: #3fb950;
+            --bad: #f85149;
+        }
+        body { background: var(--bg); color: var(--text); font-family: monospace; font-size: 22px; padding: 20px; }
+        pre { margin: 0; }
+        input.cmd { background: transparent; border: none; color: var(--text); font-family: monospace; font-size: 24px; outline: none; width: 300px; caret-color: var(--text); -webkit-text-fill-color: var(--text); opacity: 1; visibility: visible; position: relative; z-index: 1000; }
+        .prompt-text { color: var(--accent); }
+        .input-line { display: flex; align-items: center; margin-top: 10px; }
+        .input-line input { opacity: 1 !important; visibility: visible !important; }
+        a { color: var(--accent); text-decoration: none; cursor: pointer; }
+        a:hover { text-decoration: underline; }
+        .output { white-space: pre-wrap; margin-top: 5px; margin-bottom: 15px; color: var(--text); }
+        
+        .game-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--modal-bg); border: 2px solid var(--modal-border); border-radius: 12px; padding: 20px; z-index: 1000; text-align: center; min-width: 350px; }
+        .game-modal.show { display: block; }
+        .game-modal h3 { margin: 0 0 15px 0; color: var(--accent); }
+        .game-modal canvas { background: var(--panel-bg); border: 1px solid var(--muted); display: block; margin: 0 auto; }
+        .game-modal .close-btn { position: absolute; top: 10px; right: 15px; background: none; border: none; color: var(--text); font-size: 24px; cursor: pointer; }
+        .game-modal .score { font-size: 20px; margin: 10px 0; }
+        .game-modal .controls { margin-top: 10px; font-size: 16px; color: var(--muted); }
+        .game-btn { background: var(--button-bg); color: var(--button-text); border: none; padding: 10px 20px; font-size: 16px; cursor: pointer; font-family: monospace; margin: 5px; }
+        .guess-input { background: var(--panel-bg); border: 1px solid var(--accent); color: var(--text); font-size: 28px; padding: 10px; width: 150px; text-align: center; font-family: monospace; margin: 10px 0; }
+        .guess-btn { background: var(--button-bg); color: var(--button-text); border: none; padding: 10px 20px; font-size: 18px; cursor: pointer; font-family: monospace; }
+        .guess-message { margin: 10px 0; font-size: 18px; }
+        .guess-message.correct { color: var(--good); }
+        .guess-message.wrong { color: var(--bad); }
+        .mini-result { margin: 12px 0; font-size: 24px; color: var(--accent); min-height: 32px; }
+        .choice-row { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
+        .mini-input { background: var(--panel-bg); border: 1px solid var(--accent); color: var(--text); padding: 8px 10px; font-family: monospace; font-size: 18px; outline: none; }
+        .tetris-stats { display: flex; justify-content: space-between; gap: 10px; margin: 10px 0; font-size: 16px; }
+        .g2048-board { width: 320px; height: 320px; background: #1a1a1a; border: 1px solid var(--muted); border-radius: 8px; padding: 8px; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 1fr); gap: 8px; margin: 0 auto; }
+        .g2048-tile { display: flex; align-items: center; justify-content: center; border-radius: 6px; font-size: 22px; font-weight: 700; color: #ffffff; }
+        .g2048-controls { margin-top: 10px; display: grid; grid-template-columns: repeat(3, 56px); justify-content: center; gap: 6px; }
+        .g2048-controls button { background: var(--button-bg); color: var(--button-text); border: none; border-radius: 6px; font-size: 16px; font-family: monospace; padding: 8px 0; cursor: pointer; }
+        .flappy-score { margin: 8px 0; font-size: 18px; }
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 999; }
+        .overlay.show { display: block; }
+        .hack-bg-canvas { display: none; position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.45; }
+        .hack-bg-canvas.show { display: block; }
+        body.hack-bg-active > *:not(#hackBgCanvas) { position: relative; z-index: 1; }
+        .hack-mode { display: none; position: fixed; inset: 0; background: #020702; z-index: 1200; }
+        .hack-mode.show { display: block; }
+        .hack-canvas { width: 100%; height: 100%; display: block; }
+        .hack-hint { position: fixed; top: 12px; left: 14px; z-index: 1201; color: #9dff9d; font-size: 16px; text-shadow: 0 0 6px #1a8f1a; }
+        .hero-cat { color: var(--cat); text-align: left; margin: 0 0 18px 0; font-size: 22px; line-height: 1.2; }
+    </style>
+</head>
+<body>
+    <pre class="hero-cat"> /\_/\
+( o.o )
+ &gt; ^ &lt;</pre>
+
+Welcome to my personal portfolio! (Version 1.6.9)<br>
+<br>
+Type 'help' to see everything you can do.<br>
+<br>
+<div id="history"></div>
+
+<canvas id="hackBgCanvas" class="hack-bg-canvas"></canvas>
+
+<div id="hackMode" class="hack-mode">
+    <canvas id="hackCanvas" class="hack-canvas"></canvas>
+    <div class="hack-hint">Hacking mode active | Press ESC or type exit</div>
+</div>
+
+<div class="overlay" id="overlay"></div>
+<div class="game-modal" id="snakeModal">
+    <button class="close-btn" onclick="closeSnake()">&times;</button>
+    <h3>Snake Game</h3>
+    <canvas id="snakeCanvas" width="300" height="300"></canvas>
+    <div class="score" id="snakeScore">Score: 0</div>
+    <div class="controls">Arrows move | P pause | R restart | F fullscreen | ESC exit</div>
+    <br>
+    <button class="game-btn" onclick="startSnake()">Play Again</button>
+    <button class="game-btn" onclick="switchGame('guess')">Try Guess</button>
+</div>
+
+<div class="game-modal" id="guessModal">
+    <button class="close-btn" onclick="closeGuess()">&times;</button>
+    <h3>Number Guess</h3>
+    <div>Guess a number between 1-100</div>
+    <input type="number" class="guess-input" id="guessNum" placeholder="Enter number">
+    <br>
+    <button class="guess-btn" onclick="submitGuess()">Guess</button>
+    <div class="guess-message" id="guessMsg"></div>
+    <div>Attempts: <span id="attempts">0</span></div>
+    <br>
+    <button class="game-btn" onclick="startGuess()">New Game</button>
+    <button class="game-btn" onclick="switchGame('snake')">Try Snake</button>
+</div>
+
+<div class="game-modal" id="coinModal">
+    <button class="close-btn" onclick="closeCoin()">&times;</button>
+    <h3>Coin Flip</h3>
+    <div>Choose your side first, then flip</div>
+    <select id="coinChoice" class="mini-input">
+        <option value="heads">Heads</option>
+        <option value="tails">Tails</option>
+    </select>
+    <div class="mini-result" id="coinResult">Pick a side and press Flip</div>
+    <button class="game-btn" onclick="flipCoin()">Flip</button>
+    <br>
+    <button class="game-btn" onclick="switchGame('dice')">Try Dice</button>
+    <button class="game-btn" onclick="switchGame('rps')">Try RPS</button>
+</div>
+
+<div class="game-modal" id="diceModal">
+    <button class="close-btn" onclick="closeDice()">&times;</button>
+    <h3>Dice Roller</h3>
+    <div>Enter your guess (1-6), then roll</div>
+    <input type="number" min="1" max="6" id="diceGuess" class="mini-input" placeholder="1-6">
+    <div class="mini-result" id="diceResult">Enter a guess and press Roll</div>
+    <button class="game-btn" onclick="rollDice()">Roll</button>
+    <br>
+    <button class="game-btn" onclick="switchGame('coin')">Try Coin</button>
+    <button class="game-btn" onclick="switchGame('rps')">Try RPS</button>
+</div>
+
+<div class="game-modal" id="rpsModal">
+    <button class="close-btn" onclick="closeRps()">&times;</button>
+    <h3>Rock Paper Scissors</h3>
+    <div>Choose your move</div>
+    <div class="choice-row">
+        <button class="game-btn" onclick="playRps('rock')">Rock</button>
+        <button class="game-btn" onclick="playRps('paper')">Paper</button>
+        <button class="game-btn" onclick="playRps('scissors')">Scissors</button>
+    </div>
+    <div class="mini-result" id="rpsResult">Make a move</div>
+    <br>
+    <button class="game-btn" onclick="switchGame('coin')">Try Coin</button>
+    <button class="game-btn" onclick="switchGame('dice')">Try Dice</button>
+</div>
+
+<div class="game-modal" id="tetrisModal">
+    <button class="close-btn" onclick="closeTetris()">&times;</button>
+    <h3>Tetris</h3>
+    <canvas id="tetrisCanvas" width="240" height="400"></canvas>
+    <div class="tetris-stats">
+        <div id="tetrisScore">Score: 0</div>
+        <div id="tetrisLines">Lines: 0</div>
+        <div id="tetrisLevel">Level: 1</div>
+    </div>
+    <div class="controls">Arrows move, Up rotate, Space drop | P pause | R restart | F fullscreen | ESC exit</div>
+    <br>
+    <button class="game-btn" onclick="startTetris()">Play Again</button>
+    <button class="game-btn" onclick="switchGame('2048')">Try 2048</button>
+</div>
+
+<div class="game-modal" id="g2048Modal">
+    <button class="close-btn" onclick="close2048()">&times;</button>
+    <h3>2048</h3>
+    <div class="flappy-score" id="g2048Score">Score: 0</div>
+    <div class="g2048-board" id="g2048Board"></div>
+    <div class="g2048-controls">
+        <div></div><button onclick="move2048('up')">^</button><div></div>
+        <button onclick="move2048('left')">&lt;</button><button onclick="move2048('down')">v</button><button onclick="move2048('right')">&gt;</button>
+    </div>
+    <div class="controls">Use arrow keys or buttons | P pause | R restart | F fullscreen | ESC exit</div>
+    <br>
+    <button class="game-btn" onclick="start2048()">New Game</button>
+    <button class="game-btn" onclick="switchGame('flappybird')">Try Flappy</button>
+</div>
+
+<div class="game-modal" id="flappyModal">
+    <button class="close-btn" onclick="closeFlappyBird()">&times;</button>
+    <h3>Flappy Bird</h3>
+    <canvas id="flappyCanvas" width="360" height="480"></canvas>
+    <div class="flappy-score" id="flappyScore">Score: 0</div>
+    <div class="controls">Space/click flap | P pause | R restart | F fullscreen | ESC exit</div>
+    <br>
+    <button class="game-btn" onclick="startFlappyBird()">Play Again</button>
+    <button class="game-btn" onclick="switchGame('tetris')">Try Tetris</button>
+</div>
+
+<script src="src/miscTools.js"></script>
+<script src="src/themes.js"></script>
+<script src="src/games.js"></script>
+<script src="src/hack.js"></script>
+<script src="src/app.js"></script>
+</body>
+</html>
